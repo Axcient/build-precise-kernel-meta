@@ -11,17 +11,22 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install build dependencies and utilities
 RUN apt-get update && apt-get install -y \
   devscripts \
+  debhelper \
+  gawk \
+  libsigsegv2 \
+  wget \
   debian-keyring \
   less \
   vim 
 
 WORKDIR /build
 
-ARG package
-ENV PACKAGE=${package}
-
-RUN apt-get -y build-dep ${package}
-RUN apt-get source -b ${package}
+ARG version
+RUN wget https://launchpad.net/ubuntu/+archive/primary/+files/linux-meta-lts-trusty_${version}.tar.gz
+RUN wget https://launchpad.net/ubuntu/+archive/primary/+files/linux-meta-lts-trusty_${version}.dsc
+RUN dpkg-source -x linux-meta-lts-trusty_${version}.dsc
+RUN cd linux-meta-lts-trusty-${version} && debuild -i -uc -us
+RUN ls
 
 WORKDIR /packages
 RUN mv /build/* /packages/
